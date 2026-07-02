@@ -1,0 +1,30 @@
+---
+galaxy_info:
+  role_name: chrony
+  author: rnissen
+  description: >-
+    Install and configure chrony (NTP) on Debian and RedHat family systems,
+    supporting LAN time servers, peers, pool fallback, and GPS reference clocks
+  license: MIT
+  min_ansible_version: "2.14"
+  platforms:
+    - name: Debian
+      versions:
+        - bookworm
+        - trixie
+    - name: Ubuntu
+      versions:
+        - jammy
+        - noble
+    - name: EL
+      versions:
+        - "9"
+  galaxy_tags:
+    - chrony
+    - ntp
+    - time
+    - clock
+    - gps
+    - stratum1
+
+dependencies: []

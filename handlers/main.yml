@@ -1,0 +1,14 @@
+---
+- name: Reload chrony sources
+  become: true
+  ansible.builtin.command: chronyc reload sources
+  register: chrony_reload_result
+  changed_when: chrony_reload_result.rc == 0
+  failed_when: false
+
+- name: Restart chrony
+  become: true
+  ansible.builtin.systemd:
+    name: chrony
+    state: restarted
+    enabled: true

@@ -1,0 +1,57 @@
+---
+- name: Install chrony (RedHat family)
+  become: true
+  when: ansible_facts['os_family'] | lower == 'redhat'
+  ansible.builtin.package:
+    name: chrony
+    state: present
+
+- name: Install chrony (Debian family)
+  become: true
+  when: ansible_facts['os_family'] | lower == 'debian'
+  ansible.builtin.apt:
+    name: chrony
+    state: present
+    update_cache: true
+
+- name: Deploy chrony.conf
+  become: true
+  ansible.builtin.template:
+    src: chrony.conf.j2
+    dest: "{{ chrony_config_file }}"
+    owner: root
+    group: root
+    mode: "0644"
+    backup: true
+  notify: Restart chrony
+
+- name: Ensure sources directory exists
+  become: true
+  ansible.builtin.file:
+    state: directory
+    path: "{{ chrony_source_folder }}"
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Configure time sources
+  become: true
+  ansible.builtin.lineinfile:
+    path: "{{ chrony_source_folder }}/{{ item.location }}"
+    line: "{{ item.type }} {{ item.host }}{{ ' ' ~ item.parameters if item.parameters | default('') | length > 0 else '' }}"
+    create: true
+    owner: root
+    group: root
+    mode: "0644"
+  loop: "{{ chrony_sources }}"
+  notify: Reload chrony sources
+
+- name: Ensure chrony service is in the desired state
+  become: true
+  ansible.builtin.systemd:
+    name: chrony
+    state: "{{ chrony_service_state }}"
+    enabled: "{{ chrony_service_enabled }}"
+
+- name: Flush handlers
+  ansible.builtin.meta: flush_handlers

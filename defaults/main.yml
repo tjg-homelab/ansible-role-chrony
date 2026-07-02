@@ -1,0 +1,36 @@
+---
+# Path to the main chrony configuration file.
+chrony_config_file: /etc/chrony/chrony.conf
+
+# Directory chrony reads additional source (server/pool/peer) files from.
+chrony_source_folder: /etc/chrony/sources.d
+
+# Optional single-line directives injected into chrony.conf. Left commented
+# out by default so a bare install behaves like a stock client. Override with
+# an uncommented directive to enable.
+#
+# chrony_net_access — serve time to a network, e.g. "allow 192.0.2.0/24"
+# chrony_gps_config — a refclock line for a local GPS/PPS reference clock,
+#   e.g. "refclock SHM 0 refid GPS offset 0.200 trust prefer"
+# chrony_leapsec_config — leap-second source, e.g.
+#   "leapseclist /usr/share/zoneinfo/leap-seconds.list"
+chrony_net_access: "# allow 192.0.2.0/24"
+chrony_gps_config: "# refclock SHM 0 refid GPS offset 0.200 trust prefer"
+chrony_leapsec_config: "# leapseclist /usr/share/zoneinfo/leap-seconds.list"
+
+chrony_service_state: started
+chrony_service_enabled: true
+
+# Time sources written into files under chrony_source_folder. Each entry:
+#   location   — filename under sources.d (group related sources together)
+#   type       — server | pool | peer
+#   host       — hostname/IP or pool name
+#   parameters — space-separated chrony options (iburst, trust, prefer, ...)
+#
+# Default is the public NTP pool so the role works out of the box. Override
+# per host/group to point at LAN servers, peers, or a GPS refclock.
+chrony_sources:
+  - location: pool.sources
+    type: pool
+    host: pool.ntp.org
+    parameters: iburst

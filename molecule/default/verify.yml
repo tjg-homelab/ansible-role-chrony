@@ -1,0 +1,64 @@
+---
+- name: Verify
+  hosts: all
+  become: true
+  tasks:
+    - name: Stat chrony config
+      ansible.builtin.stat:
+        path: /etc/chrony/chrony.conf
+      register: chrony_config
+
+    - name: Assert chrony config exists with correct mode
+      ansible.builtin.assert:
+        that:
+          - chrony_config.stat.exists
+          - chrony_config.stat.isreg
+          - chrony_config.stat.mode == "0644"
+
+    - name: Read chrony config
+      ansible.builtin.slurp:
+        src: /etc/chrony/chrony.conf
+      register: chrony_config_content
+
+    - name: Assert chrony config contains expected directives
+      ansible.builtin.assert:
+        that:
+          - "'sourcedir /etc/chrony/sources.d' in (chrony_config_content.content | b64decode)"
+          - "'confdir /etc/chrony/conf.d' in (chrony_config_content.content | b64decode)"
+          - "'allow 192.0.2.0/24' in (chrony_config_content.content | b64decode)"
+
+    - name: Stat chrony sources directory
+      ansible.builtin.stat:
+        path: /etc/chrony/sources.d
+      register: chrony_sources_dir
+
+    - name: Assert sources directory exists
+      ansible.builtin.assert:
+        that:
+          - chrony_sources_dir.stat.exists
+          - chrony_sources_dir.stat.isdir
+
+    - name: Read local sources file
+      ansible.builtin.slurp:
+        src: /etc/chrony/sources.d/local.sources
+      register: local_sources_content
+
+    - name: Read pool sources file
+      ansible.builtin.slurp:
+        src: /etc/chrony/sources.d/pool.sources
+      register: pool_sources_content
+
+    - name: Assert sources were written correctly
+      ansible.builtin.assert:
+        that:
+          - "'server 192.0.2.10 trust iburst' in (local_sources_content.content | b64decode)"
+          - "'pool pool.ntp.org iburst' in (pool_sources_content.content | b64decode)"
+
+    - name: Gather service facts
+      ansible.builtin.service_facts:
+
+    - name: Assert chrony service is enabled
+      ansible.builtin.assert:
+        that:
+          - "'chrony.service' in ansible_facts.services"
+          - ansible_facts.services['chrony.service'].status == 'enabled'

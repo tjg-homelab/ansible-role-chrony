@@ -1,0 +1,43 @@
+# {{ ansible_managed }}
+# See chrony.conf(5) for directive documentation.
+
+# Read NTP sources from the sources.d directory (managed by this role).
+sourcedir {{ chrony_source_folder }}
+
+# ID/key pairs for NTP authentication.
+keyfile /etc/chrony/chrony.keys
+
+# Rate information storage.
+driftfile /var/lib/chrony/chrony.drift
+
+# Save NTS keys and cookies.
+ntsdumpdir /var/lib/chrony
+
+# Uncomment to enable logging.
+#log tracking measurements statistics
+
+# Log files location.
+logdir /var/log/chrony
+
+# Stop bad estimates upsetting the machine clock.
+maxupdateskew 100.0
+
+# Enable kernel synchronisation of the real-time clock (every 11 minutes).
+rtcsync
+
+# Step the clock instead of slewing for the first three updates if the
+# adjustment is larger than one second.
+makestep 1 3
+
+# Leap-second handling (must be commented out when a source serves
+# leap-smeared time).
+{{ chrony_leapsec_config }}
+
+# Include drop-in configuration from conf.d.
+confdir /etc/chrony/conf.d
+
+# Network access (serve time to clients).
+{{ chrony_net_access }}
+
+# Local reference clock (e.g. GPS/PPS).
+{{ chrony_gps_config }}
